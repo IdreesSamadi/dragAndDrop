@@ -37,10 +37,25 @@ function autobind(_: any, _2: string, descriptor: PropertyDescriptor) {
   }
   return adjDescriptor
 }
+
+enum ProjectStatus { Active, Finished }
+//project type 
+class Project {
+  constructor(
+    public id: string,
+    public title: string,
+    public description: string,
+    public people: number,
+    public status: ProjectStatus
+  ) { }
+}
+
+type Listener = (items: Project[]) => void
+
 // project state manager
 class ProjectState {
-  private listeners: any[] = []
-  private projects: any[] = []
+  private listeners: Listener[] = []
+  private projects: Project[] = []
   private static instance: ProjectState
 
   private constructor() { }
@@ -53,17 +68,18 @@ class ProjectState {
     return this.instance
   }
 
-  addListeners(listenerFn: Function) {
+  addListeners(listenerFn: Listener) {
     this.listeners.push(listenerFn)
   }
 
   addProject(title: string, description: string, numOfPeople: number) {
-    this.projects.push({
-      id: Math.random(),
+    this.projects.push(new Project(
+      Math.random().toString(),
       title,
       description,
-      numOfPeople
-    })
+      numOfPeople,
+      ProjectStatus.Active
+    ))
     for (const listenerFn of this.listeners) {
       listenerFn(this.projects.slice())
     }
@@ -77,7 +93,7 @@ class ProjectList {
   templateElement: HTMLTemplateElement
   hostElement: HTMLDivElement
   element: HTMLElement
-  assignedProjects: any[]
+  assignedProjects: Project[]
 
   constructor(private type: 'active' | 'finished') {
     this.templateElement = document.getElementById('project-list')! as HTMLTemplateElement
@@ -88,7 +104,7 @@ class ProjectList {
     this.element = importedNode.firstElementChild as HTMLElement
     this.element.id = `${this.type}-projects`
 
-    projectState.addListeners((projects: any[]) => {
+    projectState.addListeners((projects: Project[]) => {
       this.assignedProjects = projects
       this.renderProjects()
     })
