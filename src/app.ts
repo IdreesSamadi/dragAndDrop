@@ -1,5 +1,13 @@
-
-
+function autobind(_: any, _2: string, descriptor: PropertyDescriptor) {
+  const originalMethod = descriptor.value
+  const adjDescriptor: PropertyDescriptor = {
+    configurable: true,
+    get() {
+      return originalMethod.bind(this)
+    }
+  }
+  return adjDescriptor
+}
 
 class ProjectInput {
   templateElement: HTMLTemplateElement
@@ -25,8 +33,26 @@ class ProjectInput {
     this.attach()
   }
 
+  private gatherUserInput(): [string, string, number] {
+    const enterTitle = this.titleInputElement.value
+    const enterDescription = this.descriptionInputElement.value
+    const enterPeople = this.peopleInputElement.value
+
+    return [enterTitle, enterDescription, +enterPeople]
+  }
+
+  private resetInput() {
+    this.titleInputElement.value = ''
+    this.descriptionInputElement.value = ''
+    this.peopleInputElement.value = ''
+  }
+  @autobind
   private submitHandler(event: Event) {
     event.preventDefault()
+    const userInput = this.gatherUserInput()
+    if (Array.isArray(userInput)) {
+      const [title, description, people] = userInput
+    }
   }
 
   private configure() {
